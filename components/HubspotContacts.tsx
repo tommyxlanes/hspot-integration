@@ -1,34 +1,22 @@
-"use client";
-import { useEffect, useState } from "react";
-import { fetchHubSpotContacts, HubSpotContact } from "@/lib/useHubspot";
+// import { HubSpotContact } from "@/types/hubspot";
+// import ContactCard from "./ContactCard";
 
-export default function HubSpotContacts() {
-  const [contacts, setContacts] = useState<HubSpotContact[] | null>(null);
+// interface HubSpotContactsProps {
+//   contacts: HubSpotContact[];
+// }
 
-  useEffect(() => {
-    async function getContacts() {
-      const data = await fetchHubSpotContacts();
-      setContacts(data);
-    }
+// const HubSpotContacts: React.FC<HubSpotContactsProps> = ({ contacts }) => {
+//   console.log(contacts.slice(0, 5));
+//   return (
+//     <div>
+//       <h2 className="font-semibold text-3xl">HubSpot Contacts</h2>
+//       <div className="flex flex-col gap-2">
+//         {contacts.map((contact) => (
+//           <ContactCard key={contact.id} contact={contact} />
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
 
-    getContacts();
-  }, []);
-
-  return (
-    <div>
-      <h2>HubSpot Contacts</h2>
-      {contacts ? (
-        <ul>
-          {contacts.map((contact) => (
-            <li key={contact.id}>
-              {contact.properties.firstname} {contact.properties.lastname} -{" "}
-              {contact.properties.email}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Loading contacts...</p>
-      )}
-    </div>
-  );
-}
+// export default HubSpotContacts;
