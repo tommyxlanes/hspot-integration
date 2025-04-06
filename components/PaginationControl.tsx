@@ -22,9 +22,7 @@ export function PaginationControls({
       </Button>
 
       {pageCount && pageCount >= page ? (
-        <span className="text-sm text-muted-foreground">
-          Page {page} of {pageCount}
-        </span>
+        <span className="text-sm text-muted-foreground">Page {page}</span>
       ) : (
         <span className="text-sm text-muted-foreground">Page {page}</span>
       )}

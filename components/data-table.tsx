@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EditContactModal } from "./EditContactModal";
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
@@ -57,6 +58,8 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
           ))}
         </TableBody>
       </Table>
+      {/*** Contact Modal ***/}
+      <EditContactModal />
     </div>
   );
 }

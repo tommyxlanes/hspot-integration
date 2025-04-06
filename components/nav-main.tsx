@@ -38,14 +38,27 @@ export function NavMain({
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         {/* 🔍 Search Input + Button */}
-        <div className="flex items-center gap-2 px-3">
+        <div className="relative flex items-center gap-2 w-full">
           <Input
             placeholder="Search store..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="text-sm flex-1"
             onKeyDown={(e) => e.key === "Enter" && runSearch()}
+            className="text-sm pr-10"
           />
+
+          {/* ❌ Clear button inside the input */}
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              className="absolute right-12 text-muted-foreground hover:text-destructive text-lg"
+            >
+              ×
+            </button>
+          )}
+
+          {/* 🔍 Search trigger */}
           <Button
             size="icon"
             variant="outline"

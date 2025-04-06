@@ -6,10 +6,10 @@ import {
   HubSpotContact,
 } from "@/types/hubspot";
 
-export async function fetchHubSpotContacts(): Promise<HubSpotContactResult> {
-  const baseUrl = process.env.HUBSPOT_API_BASE;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN;
+const baseUrl = process.env.HUBSPOT_API_BASE;
+const token = process.env.HUBSPOT_ACCESS_TOKEN;
 
+export const fetchContactProperties = async () => {
   if (!baseUrl || !token) {
     return {
       success: false,
@@ -17,7 +17,59 @@ export async function fetchHubSpotContacts(): Promise<HubSpotContactResult> {
     };
   }
 
-  const fullUrl = `${baseUrl}/crm/v3/objects/contacts?limit=100&properties=firstname,lastname,email,company,city,state,zip,address`;
+  try {
+    const res = await fetch(`${baseUrl}/properties/v1/contacts/properties`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      return { success: false, error: `Error ${res.status}: ${text}` };
+    }
+
+    const data = await res.json();
+
+    const fieldNames = data.map((prop: any) => prop.name);
+    console.log("Available fields:", fieldNames);
+
+    return {
+      success: true,
+      fields: data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+};
+
+export async function fetchHubSpotContacts(): Promise<HubSpotContactResult> {
+  if (!baseUrl || !token) {
+    return {
+      success: false,
+      error: "Missing HUBSPOT_API_BASE or HUBSPOT_ACCESS_TOKEN",
+    };
+  }
+
+  const props = [
+    "firstname",
+    "lastname",
+    "email",
+    "company",
+    "city",
+    "state",
+    "zip",
+    "address",
+    "phone", // <-- added!
+  ];
+
+  const fullUrl = `${baseUrl}/crm/v3/objects/contacts?limit=100&properties=${props.join(
+    ","
+  )}`;
 
   try {
     const res = await fetch(fullUrl, {
@@ -49,9 +101,6 @@ export async function fetchHubSpotContacts(): Promise<HubSpotContactResult> {
 }
 
 export async function fetchAllContactFields(): Promise<HubSpotFieldsResult> {
-  const baseUrl = process.env.HUBSPOT_API_BASE;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN;
-
   if (!baseUrl || !token) {
     return {
       success: false,
@@ -93,8 +142,10 @@ export async function fetchAllContactFields(): Promise<HubSpotFieldsResult> {
 }
 
 export async function searchContactsByCompany(
-  company: string
-): Promise<HubSpotContact[]> {
+  company: string,
+  after = "",
+  limit = 50
+): Promise<{ results: HubSpotContact[]; paging: string | null }> {
   const token = process.env.HUBSPOT_ACCESS_TOKEN;
   const baseUrl = process.env.HUBSPOT_API_BASE;
 
@@ -118,22 +169,46 @@ export async function searchContactsByCompany(
           ],
         },
       ],
-      properties: ["firstname", "lastname", "email", "company"],
-      limit: 10,
+      properties: [
+        "firstname",
+        "lastname",
+        "email",
+        "company",
+        "phone",
+        "address",
+        "city",
+        "state",
+        "zip",
+      ],
+      limit,
+      after: after || undefined,
     }),
   });
 
   const data = await response.json();
-  return data.results ?? [];
+
+  return {
+    results: data.results ?? [],
+    paging: data.paging?.next?.after ?? null,
+  };
 }
 
 export async function fetchHubSpotContactsPaginated(limit = 10, after = "") {
-  const baseUrl = process.env.HUBSPOT_API_BASE;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN;
+  const props = [
+    "firstname",
+    "lastname",
+    "email",
+    "company",
+    "phone",
+    "address",
+    "city",
+    "state",
+    "zip", // adjust this if your portal uses postalcode or zip_code
+  ];
 
   const url = `${baseUrl}/crm/v3/objects/contacts?limit=${limit}${
     after ? `&after=${after}` : ""
-  }&properties=firstname,lastname,email,company`;
+  }&properties=${props.join(",")}`;
 
   const response = await fetch(url, {
     headers: {
@@ -156,9 +231,6 @@ export async function fetchHubSpotContactsPaginated(limit = 10, after = "") {
 
 // actions/actions.ts
 export async function fetchHubSpotContactsTotalCount(): Promise<number> {
-  const baseUrl = process.env.HUBSPOT_API_BASE;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN;
-
   const url = `${baseUrl}/crm/v3/objects/contacts?limit=1`; // Only need one item
 
   const response = await fetch(url, {
