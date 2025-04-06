@@ -1,23 +1,75 @@
-import {
-  fetchContactProperties,
-  fetchHubSpotContacts,
-} from "./actions/actions";
+// components/LoginForm.tsx
+"use client";
 
-export default async function Home() {
-  const properties = await fetchContactProperties();
-  const contacts = await fetchHubSpotContacts();
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
-  if (!properties.success) {
-    return <div>Error: {properties.error}</div>;
-  }
+export default function LoginForm({
+  onSubmit,
+}: {
+  onSubmit: (email: string, password: string) => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  if (!contacts.success) {
-    return <div>Error: {contacts.error}</div>;
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await onSubmit(email, password); // 🔌 your login logic here
+    } catch (err: any) {
+      setError(err.message || "Login failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      Welcome
+    <div className="w-full h-screen flex items-center justify-center bg-black">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-sm mx-auto space-y-6 text-white"
+      >
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            type="email"
+            id="email"
+            value={email}
+            required
+            onChange={(e) => setEmail(e.target.value)}
+            className="mt-2"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="password">Password</Label>
+          <Input
+            type="password"
+            id="password"
+            value={password}
+            required
+            onChange={(e) => setPassword(e.target.value)}
+            className="mt-2"
+          />
+        </div>
+
+        {error && <p className="text-sm text-red-500">{error}</p>}
+
+        <Button
+          type="submit"
+          className="w-full bg-gray-100 text-black hover:bg-gray-300"
+          disabled={loading}
+        >
+          {loading ? "Logging in..." : "Login"}
+        </Button>
+      </form>
     </div>
   );
 }
